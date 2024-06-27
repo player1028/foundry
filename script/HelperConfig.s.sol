@@ -7,12 +7,12 @@ import {MockV3Aggregator} from "../test/mocks/MockV3Aggregator.sol";
 contract HelperConfig is Script {
     NetworkConfig public activeConfig;
 
+    uint8 constant DECIMALS = 8;
+    int256 constant INITIAL_PRICE = 2000e8;
+
     struct NetworkConfig {
         address priceFeed;
     }
-
-    uint8 public constant DECIMALS = 8;
-    int256 public constant INTIAL_PRICE = 2000e8;
 
     constructor() {
         if (block.chainid == 11155111) {
@@ -20,7 +20,7 @@ contract HelperConfig is Script {
         } else if (block.chainid == 1) {
             activeConfig = getMainnetEthConfig();
         } else {
-            activeConfig = getOrCreateAnvilEthConfig();
+            activeConfig = getOrCreateAnvilConfig();
         }
     }
 
@@ -38,19 +38,19 @@ contract HelperConfig is Script {
         return ethConfig;
     }
 
-    function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory) {
+    function getOrCreateAnvilConfig() public returns (NetworkConfig memory) {
         if (activeConfig.priceFeed != address(0)) {
             return activeConfig;
         }
         vm.startBroadcast();
         MockV3Aggregator mockPriceFeed = new MockV3Aggregator(
             DECIMALS,
-            INTIAL_PRICE
+            INITIAL_PRICE
         );
         vm.stopBroadcast();
-        NetworkConfig memory anvilcConfig = NetworkConfig({
+        NetworkConfig memory ethConfig = NetworkConfig({
             priceFeed: address(mockPriceFeed)
         });
-        return anvilcConfig;
+        return ethConfig;
     }
 }

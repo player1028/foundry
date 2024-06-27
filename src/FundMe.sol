@@ -12,9 +12,8 @@ contract FundMe {
 
     address[] public funders;
     mapping(address => uint256) public funderToAmount;
-    AggregatorV3Interface s_priceFeed;
-
     address public immutable i_owner;
+    AggregatorV3Interface s_priceFeed;
 
     constructor(address priceFeed) {
         i_owner = msg.sender;
@@ -24,7 +23,7 @@ contract FundMe {
     function fund() public payable {
         require(
             msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD,
-            "not funded"
+            "not sent"
         );
         funders.push(msg.sender);
         funderToAmount[msg.sender] += msg.value;
@@ -36,11 +35,10 @@ contract FundMe {
 
     function cheaperWithdraw() public onlyOwner {
         uint256 funderLength = funders.length;
-        for (uint256 i; i < funderLength; i++) {
+        for (uint256 i = 0; i < funderLength; i++) {
             address funder = funders[i];
             funderToAmount[funder] = 0;
         }
-
         funders = new address[](0);
 
         // //transfer
@@ -48,7 +46,7 @@ contract FundMe {
         // //send
         // bool isSend = payable(msg.sender).send(address(this).balance);
         // require(isSend, 'not sent');
-        //call
+        // //call
         (bool isCalled, ) = payable(msg.sender).call{
             value: address(this).balance
         }("");
@@ -56,11 +54,10 @@ contract FundMe {
     }
 
     function withdraw() public onlyOwner {
-        for (uint256 i; i < funders.length; i++) {
+        for (uint256 i = 0; i < funders.length; i++) {
             address funder = funders[i];
             funderToAmount[funder] = 0;
         }
-
         funders = new address[](0);
 
         // //transfer
@@ -68,12 +65,12 @@ contract FundMe {
         // //send
         // bool isSend = payable(msg.sender).send(address(this).balance);
         // require(isSend, 'not sent');
-        //call
+        // //call
         (bool isCalled, ) = payable(msg.sender).call{
             value: address(this).balance
         }("");
         require(isCalled, "not called");
-    } //address 0x694AA1769357215DE4FAC081bf1f309aDC325306
+    }
 
     modifier onlyOwner() {
         if (i_owner != msg.sender) revert NotOwner();
